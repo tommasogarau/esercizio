@@ -21,7 +21,7 @@ def newIntSec (appendThere, otherProc, otherProcDate) :
     mustAppend = BeautifulSoup(tempSec, "xml")
     mustAppend.find_all("interventiSecondari")[1].string = otherProc
     mustAppend.dataInterventoSecondario.string = otherProcDate
-    appendThere.append(mustAppend)
+    appendThere.append(mustAppend.interventiSecondari)
 
 empty = " "
 
@@ -230,15 +230,20 @@ with open("/home/tommaso/Scrivania/elitubo/esercizio/bsbeautifulsoupdynamic.xml"
 
         procedures = [otherProc1, otherProcDate1, otherProc2, otherProcDate2, otherProc3, otherProcDate3, otherProc4, empty, otherProc5, empty, otherProc6, empty]
 
-        for i in range(0, len(procedures))[0::1] :
+        for i in [0, 2, 4, 6, 8, 10] :
             if str(procedures[i]).isspace() == False :
-                newIntSec(soup, procedures[i], procedures[i+1])
+                newIntSec(soup.informazioniRicovero, procedures[i], procedures[i+1])
 
         for j in range(2, -1, -1):
             if soup.find_all("Trasferimenti")[j].contents == ['\n', '\n', '\n', '\n'] :
                 soup.find_all("Trasferimenti")[j].decompose()
 
+
         soup1.bInformazioniRicovero.append(soup.informazioniRicovero)
+
+
+        if index == 3 :
+            break
 
     file2.write(str(soup1.prettify()))
 
