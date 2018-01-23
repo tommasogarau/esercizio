@@ -9,9 +9,12 @@ tempSec2 = """<interventiSecondari>
             <interventiSecondari></interventiSecondari>
         </interventiSecondari>"""
 
-def checkIfEmpty (mustcheck, tagname) :
-    if " " in mustcheck :
+def checkIfEmptyAndFill (mustcheck, tagname) :
+    if mustcheck.strip() :
+        tagname.string = mustcheck
+    elif not mustcheck.strip() :
         tagname.decompose()
+
 
 def checkIfEmptyTag (tagname) :
     for i in tagname.contents :
@@ -21,7 +24,7 @@ def checkIfEmptyTag (tagname) :
        tagname.decompose()
 
 def newIntSec (appendThere, otherProc, otherProcDate) :
-    if not otherProcDate.strip():
+    if otherProcDate.strip():
         mustAppend = BeautifulSoup(tempSec1, "xml")
         mustAppend.find_all("interventiSecondari")[1].string = otherProc
         mustAppend.dataInterventoSecondario.string = otherProcDate
@@ -33,9 +36,9 @@ def newIntSec (appendThere, otherProc, otherProcDate) :
 
 empty = " "
 
-with open("/home/tommaso/Scrivania/elitubo/esercizio/bsbeautifulsoupdynamic.xml", "r") as file, \
-        open("/home/tommaso/Scrivania/elitubo/esercizio/904306A2.txt", "r") as file1, \
-        open("/home/tommaso/Scrivania/elitubo/esercizio/output.xml", "w") as file2 :
+with open("bs.xml", "r") as file, \
+        open("904306A2.txt", "r") as file1, \
+        open("output.xml", "w") as file2 :
 
     xmlDoc = file.read()
 
@@ -43,7 +46,7 @@ with open("/home/tommaso/Scrivania/elitubo/esercizio/bsbeautifulsoupdynamic.xml"
 
     soup1 = BeautifulSoup(template, 'xml')
 
-    for line in file1 :
+    for i, line in enumerate(file1):
 
         soup = BeautifulSoup(xmlDoc, "xml")
 
@@ -113,132 +116,99 @@ with open("/home/tommaso/Scrivania/elitubo/esercizio/bsbeautifulsoupdynamic.xml"
 
         soup.informazioniRicovero["progressivoSDO"] = cardNum
 
-        soup.tipoTrasmissione.decompose()
+        soup.informazioniRicovero.regimeRicovero.string = recReg
 
-        soup.regimeRicovero.string = recReg
-        checkIfEmpty(recReg, soup.regimeRicovero)
+        checkIfEmptyAndFill(prDate, soup.informazioniRicovero.dataPrenotazione)
 
-        soup.dataPrenotazione.string = prDate
-        checkIfEmpty(prDate, soup.dataPrenotazione)
+        soup.informazioniRicovero.classePriorita.decompose()
 
-        soup.classePriorita.decompose()
+        soup.informazioniRicovero.dataRicovero.string = recDate
 
-        soup.dataRicovero.string = recDate
-        checkIfEmpty(recDate, soup.dataRicovero)
+        soup.informazioniRicovero.oraRicovero.decompose()
 
-        soup.oraRicovero.decompose()
+        soup.informazioniRicovero.unitaOperativaAmmissione.string = repNum
 
-        soup.unitaOperativaAmmissione.string = repNum
-        checkIfEmpty(repNum, soup.unitaOperativaAmmissione)
+        soup.informazioniRicovero.onereDegenza.string = degOn
 
-        soup.onereDegenza.string = degOn
-        checkIfEmpty(degOn, soup.onereDegenza)
+        soup.informazioniRicovero.provenienzaPaziente.string = patFrom
 
-        soup.provenienzaPaziente.string = patFrom
-        checkIfEmpty(patFrom, soup.provenienzaPaziente)
+        checkIfEmptyAndFill(recType, soup.informazioniRicovero.tipoRicovero)
 
-        soup.tipoRicovero.string = recType
-        checkIfEmpty(recType, soup.tipoRicovero)
+        checkIfEmptyAndFill(traOrInt, soup.informazioniRicovero.traumatismiIntossicazioni)
 
-        soup.traumatismiIntossicazioni.string = traOrInt
-        checkIfEmpty(traOrInt, soup.traumatismiIntossicazioni)
+        soup.informazioniRicovero.codiceCausaEsterna.decompose()
 
-        soup.codiceCausaEsterna.decompose()
+        moveDate = soup.informazioniRicovero.find_all("dataTrasferimento")
+        moveUnit = soup.informazioniRicovero.find_all("unitaTrasferimento")
+        moveMin = soup.informazioniRicovero.find_all("oraTrasferimento")
 
-        moveDate = soup.find_all("dataTrasferimento")
-        moveUnit = soup.find_all("unitaTrasferimento")
-        moveMin = soup.find_all("oraTrasferimento")
+        checkIfEmptyAndFill(repTransfDate1, moveDate[0])
 
-        moveDate[0].string = repTransfDate1
-        checkIfEmpty(repTransfDate1, moveDate[0])
-
-        moveUnit[0].string = repTransf1
-        checkIfEmpty(repTransf1, moveUnit[0])
+        checkIfEmptyAndFill(repTransf1, moveUnit[0])
 
         moveMin[0].decompose()
 
-        moveDate[1].string = repTransfDate2
-        checkIfEmpty(repTransfDate2, moveDate[1])
+        checkIfEmptyAndFill(repTransfDate2, moveDate[1])
 
-        moveUnit[1].string = repTransf2
-        checkIfEmpty(repTransf2, moveUnit[1])
+        checkIfEmptyAndFill(repTransf2, moveUnit[1])
 
         moveMin[1].decompose()
 
-        moveDate[2].string = repTransfDate3
-        checkIfEmpty(repTransfDate3, moveDate[2])
+        checkIfEmptyAndFill(repTransfDate3, moveDate[2])
 
-        moveUnit[2].string = repTransf3
-        checkIfEmpty(repTransf3, moveUnit[2])
+        checkIfEmptyAndFill(repTransf3, moveUnit[2])
 
         moveMin[2].decompose()
 
-        soup.unitaOperativaDimissione.string = repDim
-        checkIfEmpty(repDim, soup.unitaOperativaDimissione)
+        soup.informazioniRicovero.unitaOperativaDimissione.string = repDim
 
-        soup.dataDimissioneMorte.string = dimDate
-        checkIfEmpty(dimDate, soup.dataDimissioneMorte)
+        soup.informazioniRicovero.dataDimissioneMorte.string = dimDate
 
-        soup.oraDimissioneMorte.decompose()
+        soup.informazioniRicovero.oraDimissioneMorte.decompose()
 
-        soup.modalitaDimissione.string = dimMod
-        checkIfEmpty(dimMod, soup.modalitaDimissione)
+        soup.informazioniRicovero.modalitaDimissione.string = dimMod
 
-        soup.riscontroAutoptico.string = autRisc
-        checkIfEmpty(autRisc, soup.riscontroAutoptico)
+        checkIfEmptyAndFill(autRisc, soup.informazioniRicovero.riscontroAutoptico)
 
-        soup.motivoRicoveroRegimeDiurno.string = recDueDo
-        checkIfEmpty(recDueDo, soup.motivoRicoveroRegimeDiurno)
+        checkIfEmptyAndFill(recDueDo, soup.informazioniRicovero.motivoRicoveroRegimeDiurno)
 
-        soup.numGiornateRicoveroDiurno.string = numDH
-        checkIfEmpty(numDH, soup.numGiornateRicoveroDiurno)
+        checkIfEmptyAndFill(numDH, soup.informazioniRicovero.numGiornateRicoveroDiurno)
 
-        soup.pesoNascita.string = birthWeight
-        checkIfEmpty(birthWeight, soup.pesoNascita)
+        checkIfEmptyAndFill(birthWeight, soup.informazioniRicovero.pesoNascita)
 
-        soup.diagnosiPrincipaleDimissione.string = princDiag
-        checkIfEmpty(princDiag, soup.diagnosiPrincipaleDimissione)
+        soup.informazioniRicovero.diagnosiPrincipaleDimissione.string = princDiag
 
-        soup.diagnosiPrincipaleDimissioneAlRicovero.decompose()
-
-        checkIfEmptyTag(soup.diagnosiPrincipale)
-
-        array1 = soup.find_all("Lateralita")
+        array1 = soup.informazioniRicovero.find_all("Lateralita")
         for item in array1[::-1] :
             item.decompose()
 
-        array2 = soup.find_all("stadiazioneCondensata")
+        array2 = soup.informazioniRicovero.find_all("stadiazioneCondensata")
         for item in array2[::-1] :
             item.decompose()
 
-        soup.diagnosiSecondarieDimissione.string = secDiag1
-        checkIfEmpty(secDiag1, soup.diagnosiSecondarieDimissione)
+        checkIfEmptyAndFill(secDiag1, soup.diagnosiSecondarieDimissione)
 
-        soup.diagnosiSecondarieDimissioneAlRicovero.decompose()
+        soup.informazioniRicovero.diagnosiSecondarieDimissioneAlRicovero.decompose()
 
-        checkIfEmptyTag(soup.diagnosiSecondarie)
+        checkIfEmptyTag(soup.informazioniRicovero.diagnosiSecondarie)
 
-        soup.find_all("interventoPrincipale")[1].string = princSurgOrBirth
-        checkIfEmpty(princSurgOrBirth, soup.find_all("interventoPrincipale")[1])
+        checkIfEmptyAndFill(princSurgOrBirth, soup.informazioniRicovero.interventoPrincipale.interventoPrincipale)
 
-        soup.interventoPrincipaleEsterno.decompose()
+        soup.informazioniRicovero.interventoPrincipaleEsterno.decompose()
 
-        soup.dataInterventoPrincipale.string = princSurgOrBirthDate
-        checkIfEmpty(princSurgOrBirthDate, soup.dataInterventoPrincipale)
+        checkIfEmptyAndFill(princSurgOrBirthDate, soup.dataInterventoPrincipale)
 
-        soup.oraInterventoPrincipale.decompose()
+        soup.informazioniRicovero.oraInterventoPrincipale.decompose()
 
-        soup.chirurgoInterventoPrincipale.decompose()
+        soup.informazioniRicovero.chirurgoInterventoPrincipale.decompose()
 
-        soup.anestesistaInterventoPrincipale.decompose()
+        soup.informazioniRicovero.anestesistaInterventoPrincipale.decompose()
 
-        soup.ckListSalaOperatoriaInterventoPrincipale.decompose()
+        soup.informazioniRicovero.ckListSalaOperatoriaInterventoPrincipale.decompose()
 
-        checkIfEmptyTag(soup.interventoPrincipale)
+        checkIfEmptyTag(soup.informazioniRicovero.interventoPrincipale)
 
         procedures = [otherProc1, otherProcDate1, otherProc2, otherProcDate2, otherProc3, otherProcDate3, otherProc4, empty, otherProc5, empty, otherProc6, empty]
-        counter1 = 0
-        counter2 = 0
 
         for i in [0, 2, 4, 6, 8, 10] :
             if str(procedures[i]) != "    " :
@@ -246,8 +216,8 @@ with open("/home/tommaso/Scrivania/elitubo/esercizio/bsbeautifulsoupdynamic.xml"
 
 
         for j in range(2, -1, -1):
-            if soup.find_all("Trasferimenti")[j].contents == ['\n', '\n', '\n', '\n'] :
-                soup.find_all("Trasferimenti")[j].decompose()
+            if soup.informazioniRicovero.find_all("Trasferimenti")[j].contents == ['\n', '\n', '\n', '\n'] :
+                soup.informazioniRicovero.find_all("Trasferimenti")[j].decompose()
 
         soup1.bInformazioniRicovero.append(soup.informazioniRicovero)
 
