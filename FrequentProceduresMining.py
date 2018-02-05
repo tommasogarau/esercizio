@@ -16,7 +16,10 @@ def main():
                         default="MiningResult.txt")
 
     parser.add_argument("--minimum_support", type=int,
-                        help="chose the minimun support for the association rules algorithm", default=15)
+                        help="chose the minimum support for the association rules algorithm", default=15)
+
+    parser.add_argument("--minimum_confidence", type=int,
+                        help="chose the minimum support for the association rules algorithm", default=0.5)
 
     args = parser.parse_args()
 
@@ -76,7 +79,7 @@ def main():
             print(rep1, reportFP[rep1])
             file.writelines(str(rep1)+str(reportFP[rep1])+"\n")
 
-        reportAR = assocrules.mine_assoc_rules(reportFP, min_support=args.minimum_support, min_confidence=0.5)
+        reportAR = assocrules.mine_assoc_rules(reportFP, min_support=args.minimum_support, min_confidence=args.minimum_confidence)
 
         file.write("\n")
         file.write("\n")
