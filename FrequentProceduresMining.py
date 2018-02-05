@@ -2,7 +2,7 @@ from pymining import itemmining, assocrules
 import MySQLdb
 import argparse
 
-if __name__ == "__main__":
+def main():
 
     parser = argparse.ArgumentParser()
 
@@ -13,15 +13,15 @@ if __name__ == "__main__":
     parser.add_argument("--name", help="type the database name", default="tracks")
 
     parser.add_argument("--filename", help="choose the file where you want to save Data Analysis results ",
-                        default="analysis.txt")
+                        default="MiningResult.txt")
 
     parser.add_argument("--minimum_support", type=int,
                         help="chose the minimun support for the association rules algorithm", default=15)
 
     args = parser.parse_args()
 
-    db = MySQLdb.connect("localhost", "root", "tommaso", "tracks")
-
+    db = MySQLdb.connect("localhost", args.username ,
+                         args.password , args.name)
     cursor = db.cursor()
 
     sql1 = "SELECT `progressivoSDO` FROM `tracks`.`interventoPrincipale`;"
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     reportFP = itemmining.relim(input, min_support=args.minimum_support)
 
-    with open("MiningResult.txt", "w") as file:
+    with open("%s" % args.filename , "w") as file:
 
         file.write("""Frequent ItemSets (DRG codes sets) Mining results: \n""")
         file.write("""\n""")
@@ -91,3 +91,11 @@ if __name__ == "__main__":
         for rep2 in reportAR:
             print(rep2)
             file.write(str(rep2)+"\n")
+
+    print("All done, check %s to see the results of the data mining" % args.filename)
+
+
+if __name__ == "__main__":
+    main()
+
+
