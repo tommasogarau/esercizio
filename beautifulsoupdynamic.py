@@ -8,7 +8,7 @@ def checkIfEmptyAndFill(mustcheck, tagname):
         tagname.string = mustcheck
 
 
-def newIntSec(insertBefore, otherProc, otherProcDate):
+def addSecondaryProcedure(insertBefore, otherProc, otherProcDate):
     tempSec = """<interventiSecondari>
         <interventiSecondari></interventiSecondari>
         <interventiSecondariEsterni></interventiSecondariEsterni>
@@ -129,7 +129,7 @@ def main(template, tracks, output_file, limit=None):
 
             for i in range(0, 12, 2):
                 if str(procedures[i]) != 4*" ":
-                    newIntSec(ricElem.informazioniRicovero.rilevazioneDolore, procedures[i], procedures[i + 1])
+                    addSecondaryProcedure(ricElem.informazioniRicovero.rilevazioneDolore, procedures[i], procedures[i + 1])
 
             mainElem.bInformazioniRicovero.append(ricElem.informazioniRicovero)
 
