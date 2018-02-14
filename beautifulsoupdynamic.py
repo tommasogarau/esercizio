@@ -1,28 +1,37 @@
+import argparse
+
 from bs4 import BeautifulSoup
-import  argparse
 
-def main():
 
-    parser=argparse.ArgumentParser()
-    parser.add_argument("--template", help="choose an xml file to use as template",
-                        default="bs.xml")
-    parser.add_argument("--tracks", help="choose a file containing the tracks in txt format you want to convert in xml",
-                        default="904306A2.txt")
-    parser.add_argument("--output", help="choose a file where to save the xml containing the data from the tracks",
-                        default="output.xml")
-    args = parser.parse_args()
+def checkIfEmptyAndFill(mustcheck, tagname):
+    if mustcheck.strip():
+        tagname.string = mustcheck
 
+
+def newIntSec(appendThere, otherProc, otherProcDate):
     tempSec1 = """<interventiSecondari>
-                <interventiSecondari></interventiSecondari>
-                <interventiSecondariEsterni></interventiSecondariEsterni>
-                <dataInterventoSecondario></dataInterventoSecondario>
-                <oraInizioInterventoSecondario></oraInizioInterventoSecondario>
-                <chirurgoInterventoSecondario></chirurgoInterventoSecondario>
-                <anestesistaInterventoSecondario></anestesistaInterventoSecondario>
-                <ckListSalaOperatoriaInterventoSecondario></ckListSalaOperatoriaInterventoSecondario>
-                <Lateralita></Lateralita>
-            </interventiSecondari>"""
+        <interventiSecondari></interventiSecondari>
+        <interventiSecondariEsterni></interventiSecondariEsterni>
+        <dataInterventoSecondario></dataInterventoSecondario>
+        <oraInizioInterventoSecondario></oraInizioInterventoSecondario>
+        <chirurgoInterventoSecondario></chirurgoInterventoSecondario>
+        <anestesistaInterventoSecondario></anestesistaInterventoSecondario>
+        <ckListSalaOperatoriaInterventoSecondario></ckListSalaOperatoriaInterventoSecondario>
+        <Lateralita></Lateralita>
+    </interventiSecondari>"""
 
+    if otherProcDate.strip():
+        mustAppend = BeautifulSoup(tempSec1, "xml")
+        mustAppend.find_all("interventiSecondari")[1].string = otherProc
+        mustAppend.dataInterventoSecondario.string = otherProcDate
+        appendThere.append(mustAppend.interventiSecondari)
+    else:
+        mustAppend = BeautifulSoup(tempSec1, "xml")
+        mustAppend.find_all("interventiSecondari")[1].string = otherProc
+        appendThere.append(mustAppend.interventiSecondari)
+
+
+def main(template, tracks, output_file, limit=None):
     toappend1 = """<rilevazioneDolore></rilevazioneDolore>"""
 
     toappend2 = """<pressioneArteriosaSistolica></pressioneArteriosaSistolica>"""
@@ -31,28 +40,10 @@ def main():
 
     toappend4 = """<frazioneEiezione></frazioneEiezione>"""
 
-    def checkIfEmptyAndFill (mustcheck, tagname) :
-        if mustcheck.strip() :
-            tagname.string = mustcheck
-        elif not mustcheck.strip() :
-            tagname.string
-
-    def newIntSec (appendThere, otherProc, otherProcDate) :
-        if otherProcDate.strip():
-            mustAppend = BeautifulSoup(tempSec1, "xml")
-            mustAppend.find_all("interventiSecondari")[1].string = otherProc
-            mustAppend.dataInterventoSecondario.string = otherProcDate
-            appendThere.append(mustAppend.interventiSecondari)
-        else :
-            mustAppend = BeautifulSoup(tempSec1, "xml")
-            mustAppend.find_all("interventiSecondari")[1].string = otherProc
-            appendThere.append(mustAppend.interventiSecondari)
-
     empty = " "
 
-    with open(args.template , "r") as file, \
-        open(args.tracks , "r") as file1, \
-        open(args.output, "w") as file2 :
+    with open(template, "r") as file, open(tracks, "r") as file1, \
+            open(output_file, "w") as file2:
 
         xmlDoc = file.read()
 
@@ -61,6 +52,8 @@ def main():
         soup1 = BeautifulSoup(template, 'xml')
 
         for index, line in enumerate(file1):
+            if index == limit:
+                break
 
             soup = BeautifulSoup(xmlDoc, "xml")
 
@@ -184,16 +177,16 @@ def main():
 
             checkIfEmptyAndFill(princSurgOrBirthDate, soup.dataInterventoPrincipale)
 
-            procedures = [otherProc1, otherProcDate1, otherProc2, otherProcDate2, otherProc3, otherProcDate3, otherProc4,
+            procedures = [otherProc1, otherProcDate1, otherProc2, otherProcDate2, otherProc3, otherProcDate3,
+                          otherProc4,
                           empty, otherProc5, empty, otherProc6, empty]
 
-            for i in [0, 2, 4, 6, 8, 10] :
-                if str(procedures[i]) != "    " :
-                    newIntSec(soup.informazioniRicovero, procedures[i], procedures[i+1])
-
+            for i in [0, 2, 4, 6, 8, 10]:
+                if str(procedures[i]) != "    ":
+                    newIntSec(soup.informazioniRicovero, procedures[i], procedures[i + 1])
 
             for j in range(2, -1, -1):
-                if soup.informazioniRicovero.find_all("Trasferimenti")[j].contents == ['\n', '\n', '\n', '\n'] :
+                if soup.informazioniRicovero.find_all("Trasferimenti")[j].contents == ['\n', '\n', '\n', '\n']:
                     soup.informazioniRicovero.find_all("Trasferimenti")[j].decompose()
 
             soup.informazioniRicovero.append(BeautifulSoup(toappend1, "xml").rilevazioneDolore)
@@ -210,7 +203,15 @@ def main():
 
         print("All done, check %s to see the file converted" % args.output)
 
+
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--template", help="choose an xml file to use as template")
+    parser.add_argument("--tracks", help="choose a file containing the tracks in txt format you want to convert in xml")
+    parser.add_argument("--output", help="choose a file where to save the xml containing the data from the tracks",
+                        default="output.xml")
+    parser.add_argument("--limit", help="the number of line to process. If not specified it will process all",
+                        required=False, type=int)
+    args = parser.parse_args()
 
-
+    main(args.template, args.tracks, args.output, args.limit)
