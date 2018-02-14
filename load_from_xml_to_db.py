@@ -36,9 +36,6 @@ def main():
 
         xmlDoc = BeautifulSoup(source, "xml")
 
-        #print(xmlDoc.prettify())
-
-        #total = len(xmlDoc.find_all("informazioniRicovero"))
 
         for index, pat in enumerate(xmlDoc.find_all("informazioniRicovero")):
 

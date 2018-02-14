@@ -69,7 +69,7 @@ def main():
 
     with open("%s" % args.filename , "w") as file:
 
-        file.write("""Frequent ItemSets (DRG codes sets) Mining results: \n""")
+        file.write("""Frequent ItemSets (ICD 9 CM codes sets) Mining results: \n""")
         file.write("""\n""")
         file.write("""Note that due to library source code the results are displayed with the following schema: \n""")
         file.write("""       frozenset(DRG codes sets) (support of this sets) \n """)
@@ -85,10 +85,10 @@ def main():
         file.write("\n")
         file.write("\n")
 
-        file.write("""Association Rules ItemSets (DRG codes sets) Mining results: \n""")
+        file.write("""Association Rules ItemSets (ICD 9 CM codes sets) Mining results: \n""")
         file.write("""\n""")
         file.write("""Note that due to library source code the results are displayed with the following schema: \n""")
-        file.write("""(frozenset(DRG codes sets 1), frozenset(DRG codes sets 2) where available, (support of this sets), (confidence of this sets) \n """)
+        file.write("""(frozenset(DRG codes sets 1), frozenset(DRG codes sets 2) where available, (support of this sets), (confidence of this sets)) \n """)
         file.write("""\n""")
 
         for rep2 in reportAR:
