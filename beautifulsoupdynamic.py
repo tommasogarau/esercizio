@@ -9,7 +9,7 @@ def checkIfEmptyAndFill(mustcheck, tagname):
 
 
 def newIntSec(appendThere, otherProc, otherProcDate):
-    tempSec1 = """<interventiSecondari>
+    tempSec = """<interventiSecondari>
         <interventiSecondari></interventiSecondari>
         <interventiSecondariEsterni></interventiSecondariEsterni>
         <dataInterventoSecondario></dataInterventoSecondario>
@@ -21,24 +21,21 @@ def newIntSec(appendThere, otherProc, otherProcDate):
     </interventiSecondari>"""
 
     if otherProcDate.strip():
-        mustAppend = BeautifulSoup(tempSec1, "xml")
+        mustAppend = BeautifulSoup(tempSec, "xml")
         mustAppend.find_all("interventiSecondari")[1].string = otherProc
         mustAppend.dataInterventoSecondario.string = otherProcDate
         appendThere.append(mustAppend.interventiSecondari)
     else:
-        mustAppend = BeautifulSoup(tempSec1, "xml")
+        mustAppend = BeautifulSoup(tempSec, "xml")
         mustAppend.find_all("interventiSecondari")[1].string = otherProc
         appendThere.append(mustAppend.interventiSecondari)
 
 
 def main(template, tracks, output_file, limit=None):
-    toappend1 = """<rilevazioneDolore></rilevazioneDolore>"""
-
-    toappend2 = """<pressioneArteriosaSistolica></pressioneArteriosaSistolica>"""
-
-    toappend3 = """<creatininaSerica></creatininaSerica>"""
-
-    toappend4 = """<frazioneEiezione></frazioneEiezione>"""
+    toappend1 = "<rilevazioneDolore></rilevazioneDolore>"
+    toappend2 = "<pressioneArteriosaSistolica></pressioneArteriosaSistolica>"
+    toappend3 = "<creatininaSerica></creatininaSerica>"
+    toappend4 = "<frazioneEiezione></frazioneEiezione>"
 
     empty = " "
 
@@ -120,23 +117,15 @@ def main(template, tracks, output_file, limit=None):
             regionOfFirstAdd = line[271:273]
 
             soup.informazioniRicovero["codiceIstitutoDiCura"] = istCode
-
             soup.informazioniRicovero["progressivoSDO"] = cardNum
-
             soup.informazioniRicovero.regimeRicovero.string = recReg
-
             checkIfEmptyAndFill(prDate, soup.informazioniRicovero.dataPrenotazione)
 
             soup.informazioniRicovero.dataRicovero.string = recDate
-
             soup.informazioniRicovero.unitaOperativaAmmissione.string = repNum
-
             soup.informazioniRicovero.onereDegenza.string = degOn
-
             soup.informazioniRicovero.provenienzaPaziente.string = patFrom
-
             checkIfEmptyAndFill(recType, soup.informazioniRicovero.tipoRicovero)
-
             checkIfEmptyAndFill(traOrInt, soup.informazioniRicovero.traumatismiIntossicazioni)
 
             moveDate = soup.informazioniRicovero.find_all("dataTrasferimento")
@@ -144,57 +133,41 @@ def main(template, tracks, output_file, limit=None):
             moveMin = soup.informazioniRicovero.find_all("oraTrasferimento")
 
             checkIfEmptyAndFill(repTransfDate1, moveDate[0])
-
             checkIfEmptyAndFill(repTransf1, moveUnit[0])
-
             checkIfEmptyAndFill(repTransfDate2, moveDate[1])
-
             checkIfEmptyAndFill(repTransf2, moveUnit[1])
-
             checkIfEmptyAndFill(repTransfDate3, moveDate[2])
-
             checkIfEmptyAndFill(repTransf3, moveUnit[2])
 
             soup.informazioniRicovero.unitaOperativaDimissione.string = repDim
-
             soup.informazioniRicovero.dataDimissioneMorte.string = dimDate
-
             soup.informazioniRicovero.modalitaDimissione.string = dimMod
 
             checkIfEmptyAndFill(autRisc, soup.informazioniRicovero.riscontroAutoptico)
-
             checkIfEmptyAndFill(recDueDo, soup.informazioniRicovero.motivoRicoveroRegimeDiurno)
-
             checkIfEmptyAndFill(numDH, soup.informazioniRicovero.numGiornateRicoveroDiurno)
-
             checkIfEmptyAndFill(birthWeight, soup.informazioniRicovero.pesoNascita)
 
             soup.informazioniRicovero.diagnosiPrincipaleDimissione.string = princDiag
 
             checkIfEmptyAndFill(secDiag1, soup.diagnosiSecondarieDimissione)
-
             checkIfEmptyAndFill(princSurgOrBirth, soup.informazioniRicovero.interventoPrincipale.interventoPrincipale)
-
             checkIfEmptyAndFill(princSurgOrBirthDate, soup.dataInterventoPrincipale)
 
             procedures = [otherProc1, otherProcDate1, otherProc2, otherProcDate2, otherProc3, otherProcDate3,
-                          otherProc4,
-                          empty, otherProc5, empty, otherProc6, empty]
+                          otherProc4, empty, otherProc5, empty, otherProc6, empty]
 
             for i in [0, 2, 4, 6, 8, 10]:
                 if str(procedures[i]) != "    ":
                     newIntSec(soup.informazioniRicovero, procedures[i], procedures[i + 1])
 
-            for j in range(2, -1, -1):
-                if soup.informazioniRicovero.find_all("Trasferimenti")[j].contents == ['\n', '\n', '\n', '\n']:
-                    soup.informazioniRicovero.find_all("Trasferimenti")[j].decompose()
+            # for j in range(2, -1, -1):
+            #     if soup.informazioniRicovero.find_all("Trasferimenti")[j].contents == ['\n', '\n', '\n', '\n']:
+            #         soup.informazioniRicovero.find_all("Trasferimenti")[j].decompose()
 
             soup.informazioniRicovero.append(BeautifulSoup(toappend1, "xml").rilevazioneDolore)
-
             soup.informazioniRicovero.append(BeautifulSoup(toappend2, "xml").pressioneArteriosaSistolica)
-
             soup.informazioniRicovero.append(BeautifulSoup(toappend3, "xml").creatininaSerica)
-
             soup.informazioniRicovero.append(BeautifulSoup(toappend4, "xml").frazioneEiezione)
 
             soup1.bInformazioniRicovero.append(soup.informazioniRicovero)
