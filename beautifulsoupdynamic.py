@@ -2,6 +2,73 @@ import argparse
 
 from bs4 import BeautifulSoup
 
+INF_REC_TEMPLATE = """
+<informazioniRicovero codiceIstitutoDiCura="" progressivoSDO="">
+    <tipoTrasmissione></tipoTrasmissione>
+    <regimeRicovero></regimeRicovero>
+    <dataPrenotazione></dataPrenotazione>
+    <classePriorita></classePriorita>
+    <dataRicovero></dataRicovero>
+    <oraRicovero></oraRicovero>
+    <unitaOperativaAmmissione></unitaOperativaAmmissione>
+    <onereDegenza></onereDegenza>
+    <provenienzaPaziente></provenienzaPaziente>
+    <tipoRicovero></tipoRicovero>
+    <traumatismiIntossicazioni></traumatismiIntossicazioni>
+    <codiceCausaEsterna></codiceCausaEsterna>
+    <Trasferimenti>
+        <dataTrasferimento></dataTrasferimento>
+        <oraTrasferimento></oraTrasferimento>
+        <unitaTrasferimento></unitaTrasferimento>
+    </Trasferimenti>
+    <Trasferimenti>
+        <dataTrasferimento></dataTrasferimento>
+        <oraTrasferimento></oraTrasferimento>
+        <unitaTrasferimento></unitaTrasferimento>
+    </Trasferimenti>
+    <Trasferimenti>
+        <dataTrasferimento></dataTrasferimento>
+        <oraTrasferimento></oraTrasferimento>
+        <unitaTrasferimento></unitaTrasferimento>
+    </Trasferimenti>
+    <dimissione>
+        <unitaOperativaDimissione></unitaOperativaDimissione>
+        <dataDimissioneMorte></dataDimissioneMorte>
+        <oraDimissioneMorte></oraDimissioneMorte>
+        <modalitaDimissione></modalitaDimissione>
+    </dimissione>
+    <riscontroAutoptico></riscontroAutoptico>
+    <motivoRicoveroRegimeDiurno></motivoRicoveroRegimeDiurno>
+    <numGiornateRicoveroDiurno></numGiornateRicoveroDiurno>
+    <pesoNascita></pesoNascita>
+    <diagnosiPrincipale>
+        <diagnosiPrincipaleDimissione></diagnosiPrincipaleDimissione>
+        <diagnosiPrincipaleDimissioneAlRicovero></diagnosiPrincipaleDimissioneAlRicovero>
+        <Lateralita></Lateralita>
+        <stadiazioneCondensata></stadiazioneCondensata>
+    </diagnosiPrincipale>
+    <diagnosiSecondarie>
+        <diagnosiSecondarieDimissione></diagnosiSecondarieDimissione>
+        <diagnosiSecondarieDimissioneAlRicovero></diagnosiSecondarieDimissioneAlRicovero>
+        <Lateralita></Lateralita>
+        <stadiazioneCondensata></stadiazioneCondensata>
+    </diagnosiSecondarie>
+    <interventoPrincipale>
+        <interventoPrincipale></interventoPrincipale>
+        <interventoPrincipaleEsterno></interventoPrincipaleEsterno>
+        <dataInterventoPrincipale></dataInterventoPrincipale>
+        <oraInterventoPrincipale></oraInterventoPrincipale>
+        <chirurgoInterventoPrincipale></chirurgoInterventoPrincipale>
+        <anestesistaInterventoPrincipale></anestesistaInterventoPrincipale>
+        <ckListSalaOperatoriaInterventoPrincipale></ckListSalaOperatoriaInterventoPrincipale>
+        <Lateralita></Lateralita>
+    </interventoPrincipale>
+    <rilevazioneDolore></rilevazioneDolore>
+    <pressioneArteriosaSistolica></pressioneArteriosaSistolica>
+    <creatininaSerica></creatininaSerica>
+    <frazioneEiezione></frazioneEiezione>
+</informazioniRicovero>
+"""
 
 def checkIfEmptyAndFill(mustcheck, tagname):
     if mustcheck.strip():
@@ -9,16 +76,17 @@ def checkIfEmptyAndFill(mustcheck, tagname):
 
 
 def addSecondaryProcedure(insertBefore, otherProc, otherProcDate):
-    tempSec = """<interventiSecondari>
-        <interventiSecondari></interventiSecondari>
-        <interventiSecondariEsterni></interventiSecondariEsterni>
-        <dataInterventoSecondario></dataInterventoSecondario>
-        <oraInizioInterventoSecondario></oraInizioInterventoSecondario>
-        <chirurgoInterventoSecondario></chirurgoInterventoSecondario>
-        <anestesistaInterventoSecondario></anestesistaInterventoSecondario>
-        <ckListSalaOperatoriaInterventoSecondario></ckListSalaOperatoriaInterventoSecondario>
-        <Lateralita></Lateralita>
-    </interventiSecondari>"""
+    tempSec = \
+        """<interventiSecondari>
+            <interventiSecondari></interventiSecondari>
+            <interventiSecondariEsterni></interventiSecondariEsterni>
+            <dataInterventoSecondario></dataInterventoSecondario>
+            <oraInizioInterventoSecondario></oraInizioInterventoSecondario>
+            <chirurgoInterventoSecondario></chirurgoInterventoSecondario>
+            <anestesistaInterventoSecondario></anestesistaInterventoSecondario>
+            <ckListSalaOperatoriaInterventoSecondario></ckListSalaOperatoriaInterventoSecondario>
+            <Lateralita></Lateralita>
+        </interventiSecondari>"""
 
     if otherProcDate.strip():
         mustAppend = BeautifulSoup(tempSec, "xml")
@@ -31,13 +99,11 @@ def addSecondaryProcedure(insertBefore, otherProc, otherProcDate):
         insertBefore.insert_before(mustAppend.interventiSecondari)
 
 
-def main(template, tracks, output_file, limit=None):
+def fromTextToXML(tracks, output_file, limit=None):
     empty = " "
 
-    with open(template, "r") as templateFile, open(tracks, "r") as tracksFile, \
+    with open(tracks, "r") as tracksFile, \
             open(output_file, "w") as outputFile:
-
-        xmlDoc = templateFile.read()
 
         template = '<bInformazioniRicovero  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
 
@@ -47,7 +113,7 @@ def main(template, tracks, output_file, limit=None):
             if index == limit:
                 break
 
-            ricElem = BeautifulSoup(xmlDoc, "xml")
+            ricElem = BeautifulSoup(INF_REC_TEMPLATE, "xml")
 
             istCode = line[0:8]
             cardNum = line[8:16]
@@ -140,7 +206,6 @@ def main(template, tracks, output_file, limit=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--template", help="choose an xml file to use as template")
     parser.add_argument("--tracks", help="choose a file containing the tracks in txt format you want to convert in xml")
     parser.add_argument("--output", help="choose a file where to save the xml containing the data from the tracks",
                         default="output.xml")
@@ -148,4 +213,4 @@ if __name__ == "__main__":
                         required=False, type=int)
     args = parser.parse_args()
 
-    main(args.template, args.tracks, args.output, args.limit)
+    fromTextToXML(args.tracks, args.output, args.limit)
