@@ -2,46 +2,36 @@ import MySQLdb
 import argparse
 from bs4 import BeautifulSoup
 
-def main():
-
-    parser=argparse.ArgumentParser()
-    parser.add_argument("--username", help="type the username used to access the database", default="root")
-    parser.add_argument("--password", help="type your password", default="tommaso")
-    parser.add_argument("--name", help="type the database name", default="tracks")
-    parser.add_argument("--filename", help="choose the file you want to load to the database", default="output.xml")
-    args = parser.parse_args()
+NULL = "null"
 
 
-    db = MySQLdb.connect("localhost", args.username ,
-                         args.password , args.name)
+def checkIfEmptyandInsert(mustcheck):
+    if mustcheck.string != None:
+        return ("{returnthis}".format(returnthis=mustcheck.string.strip()))
+    else:
+        return (NULL)
+
+
+def checkIfEmptyandInsertDate(mustcheck):
+    if mustcheck.string != None:
+        return ('STR_TO_DATE("{returnthis}", "%d/%m/%Y")'.format(returnthis=mustcheck.string.strip()))
+    else:
+        return (NULL)
+
+
+def databaseLoader(user, password, database, output_file):
+    db = MySQLdb.connect("localhost", user, password, database)
 
     cursor = db.cursor()
 
-    null = "NULL"
-
-    def checkIfEmptyandInsert(mustcheck):
-        if mustcheck.string != None :
-            return("{returnthis}".format(returnthis=mustcheck.string.strip()))
-        else:
-            return(null)
-
-    def checkIfEmptyandInsertDate(mustcheck):
-        if mustcheck.string != None :
-            return('STR_TO_DATE("{returnthis}", "%d/%m/%Y")'.format(returnthis=mustcheck.string.strip()))
-        else:
-            return(null)
-
-
-    with open(args.filename , "r") as source :
+    with open(output_file, "r") as source:
 
         xmlDoc = BeautifulSoup(source, "xml")
-
 
         for index, pat in enumerate(xmlDoc.find_all("informazioniRicovero")):
 
             sql = '''INSERT INTO InformazioniRicovero(progressivoSDO, 
-            codiceIstitutoDiCura, 
-            tipoTrasmissione, 
+            codiceIstitutoDiCura, tipoTrasmissione, 
             regimeRicovero,
             dataPrenotazione, 
             classePriorita, 
@@ -64,7 +54,7 @@ def main():
             
             VALUES ('{progr}', '{code}', {type}, '{reg}', {datepr}, {prclass}, {recdate}, {rectime},\
             {opunit}, {degon}, {patfrom}, {rectype}, {traorint}, {ext}, {autrisc}, {recduedo}, {numdh}, {birthweight},\
-            {rilevazioneDolore}, {pressioneArteriosaSistolica}, {creatininaSerica}, {frazioneEiezione})'''.\
+            {rilevazioneDolore}, {pressioneArteriosaSistolica}, {creatininaSerica}, {frazioneEiezione})'''. \
                 format(progr=pat["progressivoSDO"],
                        code=pat["codiceIstitutoDiCura"],
                        type=checkIfEmptyandInsert(pat.tipoTrasmissione),
@@ -90,15 +80,15 @@ def main():
 
             cursor.execute(sql)
 
-            for j in range(0,3):
+            for j in range(0, 3):
                 sql2 = """INSERT INTO Trasferimenti(dataTrasferimento, 
                 oraTrasferimento, 
                 unitaTrasferimento, 
                 progressivoSDO) 
-                VALUES ({reptransfdate}, {time}, {reptransf}, (SELECT  MAX(progressivoSDO) FROM InformazioniRicovero))""".\
+                VALUES ({reptransfdate}, {time}, {reptransf}, (SELECT  MAX(progressivoSDO) FROM InformazioniRicovero))""". \
                     format(reptransfdate=checkIfEmptyandInsertDate(pat.find_all("Trasferimenti")[j].dataTrasferimento),
                            time=checkIfEmptyandInsert(pat.find_all("Trasferimenti")[j].oraTrasferimento),
-                           reptransf=checkIfEmptyandInsert(pat.find_all("Trasferimenti")[j].unitaTrasferimento) )
+                           reptransf=checkIfEmptyandInsert(pat.find_all("Trasferimenti")[j].unitaTrasferimento))
                 cursor.execute(sql2)
 
             sql3 = """INSERT INTO dimissione(unitaOperativaDimissione, 
@@ -106,7 +96,7 @@ def main():
             modalitaDimissione, 
             oraDimissioneMorte, 
             progressivoSDO) 
-            VALUES ({dimunit}, {dimdate}, {dimmod}, {time}, (SELECT  MAX(progressivoSDO) FROM InformazioniRicovero))""".\
+            VALUES ({dimunit}, {dimdate}, {dimmod}, {time}, (SELECT  MAX(progressivoSDO) FROM InformazioniRicovero))""". \
                 format(dimunit=checkIfEmptyandInsert(pat.find_all("dimissione")[0].unitaOperativaDimissione),
                        dimdate=checkIfEmptyandInsertDate(pat.find_all("dimissione")[0].dataDimissioneMorte),
                        dimmod=checkIfEmptyandInsert(pat.find_all("dimissione")[0].modalitaDimissione),
@@ -118,11 +108,13 @@ def main():
             Lateralita, 
             stadiazioneCondensata, 
             progressivoSDO) 
-            VALUES ("{princdiag}", {princdiagrec}, {lat}, {stad}, (SELECT  MAX(progressivoSDO) FROM InformazioniRicovero))""".\
-                format(princdiag=checkIfEmptyandInsert(pat.find_all("diagnosiPrincipale")[0].diagnosiPrincipaleDimissione),
-                       princdiagrec=checkIfEmptyandInsert(pat.find_all("diagnosiPrincipale")[0].diagnosiPrincipaleDimissioneAlRicovero),
-                       lat=checkIfEmptyandInsert(pat.find_all("diagnosiPrincipale")[0].Lateralita),
-                       stad=checkIfEmptyandInsert(pat.find_all("diagnosiPrincipale")[0].stadiazioneCondensata))
+            VALUES ("{princdiag}", {princdiagrec}, {lat}, {stad}, (SELECT  MAX(progressivoSDO) FROM InformazioniRicovero))""". \
+                format(
+                princdiag=checkIfEmptyandInsert(pat.find_all("diagnosiPrincipale")[0].diagnosiPrincipaleDimissione),
+                princdiagrec=checkIfEmptyandInsert(
+                    pat.find_all("diagnosiPrincipale")[0].diagnosiPrincipaleDimissioneAlRicovero),
+                lat=checkIfEmptyandInsert(pat.find_all("diagnosiPrincipale")[0].Lateralita),
+                stad=checkIfEmptyandInsert(pat.find_all("diagnosiPrincipale")[0].stadiazioneCondensata))
             cursor.execute(sql4)
 
             sql5 = """INSERT INTO diagnosiSecondarie(diagnosiSecondarieDimissione, 
@@ -130,11 +122,13 @@ def main():
             Lateralita, 
             stadiazioneCondensata, 
             progressivoSDO) 
-            VALUES ("{secdiag}", {secdiagrec}, {lat}, {stad}, (SELECT  MAX(progressivoSDO) FROM InformazioniRicovero))""".\
-                format(secdiag=checkIfEmptyandInsert(pat.find_all("diagnosiSecondarie")[0].diagnosiSecondarieDimissione),
-                       secdiagrec=checkIfEmptyandInsert(pat.find_all("diagnosiSecondarie")[0].diagnosiSecondarieDimissioneAlRicovero),
-                       lat=checkIfEmptyandInsert(pat.find_all("diagnosiPrincipale")[0].Lateralita),
-                       stad=checkIfEmptyandInsert(pat.find_all("diagnosiPrincipale")[0].stadiazioneCondensata))
+            VALUES ("{secdiag}", {secdiagrec}, {lat}, {stad}, (SELECT  MAX(progressivoSDO) FROM InformazioniRicovero))""". \
+                format(
+                secdiag=checkIfEmptyandInsert(pat.find_all("diagnosiSecondarie")[0].diagnosiSecondarieDimissione),
+                secdiagrec=checkIfEmptyandInsert(
+                    pat.find_all("diagnosiSecondarie")[0].diagnosiSecondarieDimissioneAlRicovero),
+                lat=checkIfEmptyandInsert(pat.find_all("diagnosiPrincipale")[0].Lateralita),
+                stad=checkIfEmptyandInsert(pat.find_all("diagnosiPrincipale")[0].stadiazioneCondensata))
             cursor.execute(sql5)
 
             sql6 = """INSERT INTO interventoPrincipale(interventoPrincipale, 
@@ -147,7 +141,7 @@ def main():
             Lateralita, 
             progressivoSDO) 
             VALUES ({princsurg}, {extprincsurg}, {princsurgdate}, {time}, {surg}, {an}, {check}, {lat}, 
-            (SELECT  MAX(progressivoSDO) FROM InformazioniRicovero))""".\
+            (SELECT  MAX(progressivoSDO) FROM InformazioniRicovero))""". \
                 format(princsurg=checkIfEmptyandInsert(pat.interventoPrincipale.interventoPrincipale),
                        extprincsurg=checkIfEmptyandInsert(pat.interventoPrincipale.interventoPrincipaleEsterno),
                        princsurgdate=checkIfEmptyandInsertDate(pat.interventoPrincipale.dataInterventoPrincipale),
@@ -169,15 +163,23 @@ def main():
                 Lateralita, 
                 progressivoSDO) 
                 VALUES ({intsec}, {extinsec}, {intsecdate}, {time} , {surg}, {an}, {check}, {lat}, 
-                (SELECT  MAX(progressivoSDO) FROM InformazioniRicovero)) """.\
-                    format(intsec=checkIfEmptyandInsert(pat.find_all("interventiSecondari", recursive=False)[k].interventiSecondari),
-                           extinsec=checkIfEmptyandInsert(pat.find_all("interventiSecondari", recursive=False)[k].interventiSecondariEsterni),
-                           intsecdate=checkIfEmptyandInsertDate(pat.find_all("interventiSecondari", recursive=False)[k].dataInterventoSecondario),
-                           time=checkIfEmptyandInsert(pat.find_all("interventiSecondari", recursive=False)[k].oraInizioInterventoSecondario),
-                           surg=checkIfEmptyandInsert(pat.find_all("interventiSecondari", recursive=False)[k].chirurgoInterventoSecondario),
-                           an=checkIfEmptyandInsert(pat.find_all("interventiSecondari", recursive=False)[k].anestesistaInterventoSecondario),
-                           check=checkIfEmptyandInsert(pat.find_all("interventiSecondari", recursive=False)[k].ckListSalaOperatoriaInterventoSecondario),
-                           lat=checkIfEmptyandInsert(pat.find_all("interventiSecondari", recursive=False)[k].Lateralita))
+                (SELECT  MAX(progressivoSDO) FROM InformazioniRicovero)) """. \
+                    format(intsec=checkIfEmptyandInsert(
+                    pat.find_all("interventiSecondari", recursive=False)[k].interventiSecondari),
+                           extinsec=checkIfEmptyandInsert(
+                               pat.find_all("interventiSecondari", recursive=False)[k].interventiSecondariEsterni),
+                           intsecdate=checkIfEmptyandInsertDate(
+                               pat.find_all("interventiSecondari", recursive=False)[k].dataInterventoSecondario),
+                           time=checkIfEmptyandInsert(
+                               pat.find_all("interventiSecondari", recursive=False)[k].oraInizioInterventoSecondario),
+                           surg=checkIfEmptyandInsert(
+                               pat.find_all("interventiSecondari", recursive=False)[k].chirurgoInterventoSecondario),
+                           an=checkIfEmptyandInsert(
+                               pat.find_all("interventiSecondari", recursive=False)[k].anestesistaInterventoSecondario),
+                           check=checkIfEmptyandInsert(pat.find_all("interventiSecondari", recursive=False)[
+                                                           k].ckListSalaOperatoriaInterventoSecondario),
+                           lat=checkIfEmptyandInsert(
+                               pat.find_all("interventiSecondari", recursive=False)[k].Lateralita))
                 cursor.execute(sql7)
 
         db.commit()
@@ -186,10 +188,12 @@ def main():
 
         print("All done, the data has been loaded to the database")
 
+
 if __name__ == "__main__":
-    main()
-
-
-
-
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--username", help="type the username used to access the database")
+    parser.add_argument("--password", help="type your password")
+    parser.add_argument("--name", help="type the database name")
+    parser.add_argument("--filename", help="choose the file you want to load to the database", default="outputFile.xml")
+    args = parser.parse_args()
+    databaseLoader(args.username, args.password, args.name, args.filename)
