@@ -59,4 +59,8 @@
         <ckListSalaOperatoriaInterventoPrincipale></ckListSalaOperatoriaInterventoPrincipale>
         <Lateralita></Lateralita>
     </interventoPrincipale>
+    <rilevazioneDolore></rilevazioneDolore>
+    <pressioneArteriosaSistolica></pressioneArteriosaSistolica>
+    <creatininaSerica></creatininaSerica>
+    <frazioneEiezione></frazioneEiezione>
 </informazioniRicovero>

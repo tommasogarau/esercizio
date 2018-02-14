@@ -8,7 +8,7 @@ def checkIfEmptyAndFill(mustcheck, tagname):
         tagname.string = mustcheck
 
 
-def newIntSec(appendThere, otherProc, otherProcDate):
+def newIntSec(insertBefore, otherProc, otherProcDate):
     tempSec = """<interventiSecondari>
         <interventiSecondari></interventiSecondari>
         <interventiSecondariEsterni></interventiSecondariEsterni>
@@ -24,35 +24,30 @@ def newIntSec(appendThere, otherProc, otherProcDate):
         mustAppend = BeautifulSoup(tempSec, "xml")
         mustAppend.find_all("interventiSecondari")[1].string = otherProc
         mustAppend.dataInterventoSecondario.string = otherProcDate
-        appendThere.append(mustAppend.interventiSecondari)
+        insertBefore.insert_before(mustAppend.interventiSecondari)
     else:
         mustAppend = BeautifulSoup(tempSec, "xml")
         mustAppend.find_all("interventiSecondari")[1].string = otherProc
-        appendThere.append(mustAppend.interventiSecondari)
+        insertBefore.insert_before(mustAppend.interventiSecondari)
 
 
 def main(template, tracks, output_file, limit=None):
-    toappend1 = "<rilevazioneDolore></rilevazioneDolore>"
-    toappend2 = "<pressioneArteriosaSistolica></pressioneArteriosaSistolica>"
-    toappend3 = "<creatininaSerica></creatininaSerica>"
-    toappend4 = "<frazioneEiezione></frazioneEiezione>"
-
     empty = " "
 
-    with open(template, "r") as file, open(tracks, "r") as file1, \
-            open(output_file, "w") as file2:
+    with open(template, "r") as templateFile, open(tracks, "r") as tracksFile, \
+            open(output_file, "w") as outputFile:
 
-        xmlDoc = file.read()
+        xmlDoc = templateFile.read()
 
         template = '<bInformazioniRicovero  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
 
-        soup1 = BeautifulSoup(template, 'xml')
+        mainElem = BeautifulSoup(template, 'xml')
 
-        for index, line in enumerate(file1):
+        for index, line in enumerate(tracksFile):
             if index == limit:
                 break
 
-            soup = BeautifulSoup(xmlDoc, "xml")
+            ricElem = BeautifulSoup(xmlDoc, "xml")
 
             istCode = line[0:8]
             cardNum = line[8:16]
@@ -72,19 +67,12 @@ def main(template, tracks, output_file, limit=None):
             repTransf3 = line[74:78]
             repTransfDate3 = line[78:88]
             repDim = line[88:92]
-            funDimArea = line[92:93]
             dimDate = line[93:103]
             dimMod = line[103:104]
             autRisc = line[104:105]
-            expl = line[105:106]
             birthWeight = line[106:110]
             princDiag = line[110:115]
             secDiag1 = line[115:120]
-            secDiag2 = line[120:125]
-            secDiag3 = line[125:130]
-            secDiag4 = line[130:135]
-            secDiag5 = line[135:140]
-            secDiag6 = line[140:145]
             princSurgOrBirth = line[145:149]
             princSurgOrBirthDate = line[149:159]
             otherProc1 = line[159:163]
@@ -96,41 +84,23 @@ def main(template, tracks, output_file, limit=None):
             otherProc4 = line[201:205]
             otherProc5 = line[205:209]
             otherProc6 = line[209:213]
-            dayRecDue = line[213:214]
             numDH = line[214:217]
-            licenseDays = line[217:219]
-            drgCode = line[219:222]
-            degCost = line[222:231]
-            degCostAA = line[231:240]
-            contPos = line[240:241]
-            err1 = line[241:242]
-            err2 = line[242:243]
-            err3 = line[243:244]
-            err4 = line[244:245]
-            err5 = line[245:246]
-            err6 = line[246:247]
-            err7 = line[247:248]
-            err8 = line[248:249]
-            err9 = line[249:250]
-            err10 = line[250:251]
-            idCode = line[251:271]
-            regionOfFirstAdd = line[271:273]
 
-            soup.informazioniRicovero["codiceIstitutoDiCura"] = istCode
-            soup.informazioniRicovero["progressivoSDO"] = cardNum
-            soup.informazioniRicovero.regimeRicovero.string = recReg
-            checkIfEmptyAndFill(prDate, soup.informazioniRicovero.dataPrenotazione)
+            ricElem.informazioniRicovero["codiceIstitutoDiCura"] = istCode
+            ricElem.informazioniRicovero["progressivoSDO"] = cardNum
+            ricElem.informazioniRicovero.regimeRicovero.string = recReg
+            checkIfEmptyAndFill(prDate, ricElem.informazioniRicovero.dataPrenotazione)
 
-            soup.informazioniRicovero.dataRicovero.string = recDate
-            soup.informazioniRicovero.unitaOperativaAmmissione.string = repNum
-            soup.informazioniRicovero.onereDegenza.string = degOn
-            soup.informazioniRicovero.provenienzaPaziente.string = patFrom
-            checkIfEmptyAndFill(recType, soup.informazioniRicovero.tipoRicovero)
-            checkIfEmptyAndFill(traOrInt, soup.informazioniRicovero.traumatismiIntossicazioni)
+            ricElem.informazioniRicovero.dataRicovero.string = recDate
+            ricElem.informazioniRicovero.unitaOperativaAmmissione.string = repNum
+            ricElem.informazioniRicovero.onereDegenza.string = degOn
+            ricElem.informazioniRicovero.provenienzaPaziente.string = patFrom
+            checkIfEmptyAndFill(recType, ricElem.informazioniRicovero.tipoRicovero)
+            checkIfEmptyAndFill(traOrInt, ricElem.informazioniRicovero.traumatismiIntossicazioni)
 
-            moveDate = soup.informazioniRicovero.find_all("dataTrasferimento")
-            moveUnit = soup.informazioniRicovero.find_all("unitaTrasferimento")
-            moveMin = soup.informazioniRicovero.find_all("oraTrasferimento")
+            moveDate = ricElem.informazioniRicovero.find_all("dataTrasferimento")
+            moveUnit = ricElem.informazioniRicovero.find_all("unitaTrasferimento")
+            moveMin = ricElem.informazioniRicovero.find_all("oraTrasferimento")
 
             checkIfEmptyAndFill(repTransfDate1, moveDate[0])
             checkIfEmptyAndFill(repTransf1, moveUnit[0])
@@ -139,40 +109,31 @@ def main(template, tracks, output_file, limit=None):
             checkIfEmptyAndFill(repTransfDate3, moveDate[2])
             checkIfEmptyAndFill(repTransf3, moveUnit[2])
 
-            soup.informazioniRicovero.unitaOperativaDimissione.string = repDim
-            soup.informazioniRicovero.dataDimissioneMorte.string = dimDate
-            soup.informazioniRicovero.modalitaDimissione.string = dimMod
+            ricElem.informazioniRicovero.unitaOperativaDimissione.string = repDim
+            ricElem.informazioniRicovero.dataDimissioneMorte.string = dimDate
+            ricElem.informazioniRicovero.modalitaDimissione.string = dimMod
 
-            checkIfEmptyAndFill(autRisc, soup.informazioniRicovero.riscontroAutoptico)
-            checkIfEmptyAndFill(recDueDo, soup.informazioniRicovero.motivoRicoveroRegimeDiurno)
-            checkIfEmptyAndFill(numDH, soup.informazioniRicovero.numGiornateRicoveroDiurno)
-            checkIfEmptyAndFill(birthWeight, soup.informazioniRicovero.pesoNascita)
+            checkIfEmptyAndFill(autRisc, ricElem.informazioniRicovero.riscontroAutoptico)
+            checkIfEmptyAndFill(recDueDo, ricElem.informazioniRicovero.motivoRicoveroRegimeDiurno)
+            checkIfEmptyAndFill(numDH, ricElem.informazioniRicovero.numGiornateRicoveroDiurno)
+            checkIfEmptyAndFill(birthWeight, ricElem.informazioniRicovero.pesoNascita)
 
-            soup.informazioniRicovero.diagnosiPrincipaleDimissione.string = princDiag
+            ricElem.informazioniRicovero.diagnosiPrincipaleDimissione.string = princDiag
 
-            checkIfEmptyAndFill(secDiag1, soup.diagnosiSecondarieDimissione)
-            checkIfEmptyAndFill(princSurgOrBirth, soup.informazioniRicovero.interventoPrincipale.interventoPrincipale)
-            checkIfEmptyAndFill(princSurgOrBirthDate, soup.dataInterventoPrincipale)
+            checkIfEmptyAndFill(secDiag1, ricElem.diagnosiSecondarieDimissione)
+            checkIfEmptyAndFill(princSurgOrBirth, ricElem.informazioniRicovero.interventoPrincipale.interventoPrincipale)
+            checkIfEmptyAndFill(princSurgOrBirthDate, ricElem.dataInterventoPrincipale)
 
             procedures = [otherProc1, otherProcDate1, otherProc2, otherProcDate2, otherProc3, otherProcDate3,
                           otherProc4, empty, otherProc5, empty, otherProc6, empty]
 
-            for i in [0, 2, 4, 6, 8, 10]:
-                if str(procedures[i]) != "    ":
-                    newIntSec(soup.informazioniRicovero, procedures[i], procedures[i + 1])
+            for i in range(0, 12, 2):
+                if str(procedures[i]) != 4*" ":
+                    newIntSec(ricElem.informazioniRicovero.rilevazioneDolore, procedures[i], procedures[i + 1])
 
-            # for j in range(2, -1, -1):
-            #     if soup.informazioniRicovero.find_all("Trasferimenti")[j].contents == ['\n', '\n', '\n', '\n']:
-            #         soup.informazioniRicovero.find_all("Trasferimenti")[j].decompose()
+            mainElem.bInformazioniRicovero.append(ricElem.informazioniRicovero)
 
-            soup.informazioniRicovero.append(BeautifulSoup(toappend1, "xml").rilevazioneDolore)
-            soup.informazioniRicovero.append(BeautifulSoup(toappend2, "xml").pressioneArteriosaSistolica)
-            soup.informazioniRicovero.append(BeautifulSoup(toappend3, "xml").creatininaSerica)
-            soup.informazioniRicovero.append(BeautifulSoup(toappend4, "xml").frazioneEiezione)
-
-            soup1.bInformazioniRicovero.append(soup.informazioniRicovero)
-
-        file2.write(str(soup1.prettify()))
+        outputFile.write(str(mainElem.prettify()))
 
         print("All done, check %s to see the file converted" % args.output)
 
